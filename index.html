@@ -75,6 +75,7 @@
       padding: 4px;
       position: relative;
       cursor: pointer;
+      transition: all 0.3s ease;
     }
     .drop-slot .placeholder-text {
       color: #94a3b8;
@@ -89,14 +90,43 @@
       z-index: 2;
     }
 
-    .t1-slot { width: 240px; }
+    /* Hiệu ứng hiển thị đúng / sai */
+    .drop-slot.slot-correct {
+      border: 2px solid #16a34a !important;
+      background-color: #f0fdf4 !important;
+    }
+    .drop-slot.slot-correct::after {
+      content: "✔ Đúng";
+      position: absolute;
+      bottom: -18px;
+      font-size: 11px;
+      font-weight: bold;
+      color: #16a34a;
+      z-index: 10;
+    }
+
+    .drop-slot.slot-wrong {
+      border: 2px solid #dc2626 !important;
+      background-color: #fef2f2 !important;
+    }
+    .drop-slot.slot-wrong::after {
+      content: "✖ Sai";
+      position: absolute;
+      bottom: -18px;
+      font-size: 11px;
+      font-weight: bold;
+      color: #dc2626;
+      z-index: 10;
+    }
+
+    .t1-slot { width: 240px; margin-bottom: 12px; }
     .line-connector { height: 2px; background: #cbd5e1; margin: 15px auto; width: 75%; position: relative; }
     .line-connector::before { content: ""; position: absolute; left: 50%; top: -8px; width: 8px; height: 8px; background: #94a3b8; border-radius: 50%; transform: translateX(-50%); }
 
     .branches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
     .branch { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; background: #fcfcfd; }
-    .branch-t2 { width: 100%; max-width: 200px; margin: 0 auto 10px auto; }
-    .branch-t3-container { display: flex; gap: 8px; justify-content: center; }
+    .branch-t2 { width: 100%; max-width: 200px; margin: 0 auto 16px auto; }
+    .branch-t3-container { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
     .branch-t3-container .drop-slot { flex: 1; max-width: 135px; }
 
     .btn-submit {
@@ -109,7 +139,7 @@
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      margin-top: 20px;
+      margin-top: 25px;
     }
     .btn-submit:hover { background: #1d4ed8; }
     .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
@@ -129,7 +159,7 @@
     <input type="text" id="hoTen" placeholder="Nhập Họ và Tên của bạn..." required>
   </div>
 
-  <div class="pool-section">
+  <div class="pool-section" id="poolSection">
     <div class="pool-title">💡 Kéo thả hoặc Chạm chọn thẻ rồi chạm vào ô tương ứng trên sơ đồ:</div>
     <div id="cardPool" class="card-pool">
       <div class="drag-item c-blue" data-class="XEHAIBANH">📦 Lớp XEHAIBANH</div>
@@ -208,11 +238,12 @@
 </div>
 
 <script>
-  // URL Web App Google Apps Script đã nối liền dòng chuẩn xác
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_jsjr4aX3saS7EHidK5NOO2LzBJTuTduwnwla90Z7nZF90qXtWXTkl89Auz4p2L35g/exec";
 
   const pool = document.getElementById('cardPool');
   const slots = document.querySelectorAll('.drop-slot');
+  let sortableInstances = [];
+  let isSubmitted = false;
 
   function updatePlaceholders() {
     slots.forEach(slot => {
@@ -222,21 +253,22 @@
     });
   }
 
-  // Khởi tạo SortableJS cho Kho thẻ
-  new Sortable(pool, {
+  // Khởi tạo Sortable
+  const poolSortable = new Sortable(pool, {
     group: 'shared-tree',
     animation: 150,
     sort: true,
     onAdd: updatePlaceholders,
     onRemove: updatePlaceholders
   });
+  sortableInstances.push(poolSortable);
 
-  // Khởi tạo SortableJS cho từng ô nhận thẻ
   slots.forEach(slot => {
-    new Sortable(slot, {
+    const s = new Sortable(slot, {
       group: {
         name: 'shared-tree',
         put: function (to) {
+          if (isSubmitted) return false;
           return to.el.querySelectorAll('.drag-item').length === 0;
         }
       },
@@ -244,11 +276,14 @@
       onAdd: updatePlaceholders,
       onRemove: updatePlaceholders
     });
+    sortableInstances.push(s);
   });
 
-  // Hỗ trợ bổ sung: Bấm/Chạm để chọn thẻ và chuyển vào ô (rất nhạy cho mobile)
+  // Hỗ trợ chạm/click để chọn và đặt thẻ
   let selectedItem = null;
   document.addEventListener('click', function(e) {
+    if (isSubmitted) return;
+
     const item = e.target.closest('.drag-item');
     const slot = e.target.closest('.drop-slot');
     const poolEl = e.target.closest('#cardPool');
@@ -289,13 +324,13 @@
     }
   });
 
-  // Xáo trộn vị trí ngẫu nhiên ban đầu
+  // Xáo trộn ngẫu nhiên ban đầu
   for (let i = pool.children.length; i >= 0; i--) {
     pool.appendChild(pool.children[Math.random() * i | 0]);
   }
   updatePlaceholders();
 
-  // Đáp án chấm điểm
+  // Quy tắc kiểm tra đáp án
   const CORRECT_RULES = {
     root: ["XE"],
     t2_2banh: ["XEHAIBANH"],
@@ -321,28 +356,50 @@
     }
 
     let correctCount = 0;
-    const placed = {};
+
+    // Đánh dấu từng ô và tính điểm
+    // Dùng bản sao của tập đáp án để tránh trường hợp 2 ô tầng 3 chọn trùng 1 giá trị
+    const remainingRules = {
+      root: [...CORRECT_RULES.root],
+      t2_2banh: [...CORRECT_RULES.t2_2banh],
+      t3_2banh: [...CORRECT_RULES.t3_2banh],
+      t2_3banh: [...CORRECT_RULES.t2_3banh],
+      t3_3banh: [...CORRECT_RULES.t3_3banh],
+      t2_4banh: [...CORRECT_RULES.t2_4banh],
+      t3_4banh: [...CORRECT_RULES.t3_4banh]
+    };
 
     slots.forEach(slot => {
       const key = slot.getAttribute('data-key');
-      if (!placed[key]) placed[key] = [];
       const item = slot.querySelector('.drag-item');
+
       if (item) {
-        placed[key].push(item.getAttribute('data-class'));
+        const val = item.getAttribute('data-class');
+        const validIdx = remainingRules[key] ? remainingRules[key].indexOf(val) : -1;
+
+        if (validIdx !== -1) {
+          correctCount++;
+          remainingRules[key].splice(validIdx, 1); // Loại bỏ khỏi tập còn lại
+          slot.classList.add('slot-correct');
+          slot.classList.remove('slot-wrong');
+        } else {
+          slot.classList.add('slot-wrong');
+          slot.classList.remove('slot-correct');
+        }
+      } else {
+        slot.classList.add('slot-wrong');
+        slot.classList.remove('slot-correct');
       }
     });
 
-    for (const key in CORRECT_RULES) {
-      const targetItems = CORRECT_RULES[key];
-      const userItems = placed[key] || [];
-      userItems.forEach(item => {
-        if (targetItems.includes(item)) correctCount++;
-      });
-    }
+    // Khóa giao diện sau khi nộp
+    isSubmitted = true;
+    sortableInstances.forEach(inst => inst.option("disabled", true));
+    document.getElementById('hoTen').disabled = true;
 
     const btn = document.getElementById('btnSubmit');
     btn.disabled = true;
-    btn.innerText = "Đang gửi kết quả...";
+    btn.innerText = "Đang gửi kết quả lên hệ thống...";
 
     const payload = {
       hoTen: hoTen,
@@ -357,12 +414,11 @@
         body: JSON.stringify(payload)
       });
 
-      alert(`Nộp bài thành công!\nĐiểm của bạn: ${(correctCount / 10 * 10).toFixed(1)}/10 (${correctCount}/10 vị trí đúng).`);
-      btn.innerText = "ĐÃ HOÀN THÀNH";
+      alert(`Nộp bài thành công!\nĐiểm của bạn: ${(correctCount / 10 * 10).toFixed(1)}/10 (${correctCount}/10 vị trí đúng).\n\nCác vị trí Đúng (✔ màu xanh) và Sai (✖ màu đỏ) đã được hiển thị trên màn hình để bạn đối chiếu.`);
+      btn.innerText = `ĐÃ HOÀN THÀNH - ĐIỂM: ${(correctCount / 10 * 10).toFixed(1)}/10`;
     } catch (err) {
-      alert("Có lỗi kết nối máy chủ. Vui lòng thử lại!");
-      btn.disabled = false;
-      btn.innerText = "NỘP BÀI VÀ GHI ĐIỂM";
+      alert("Có lỗi kết nối máy chủ nộp bài. Vui lòng báo giảng viên!");
+      btn.innerText = `ĐÃ NỘP (LỖI GỬI DỮ LIỆU) - ĐIỂM: ${(correctCount / 10 * 10).toFixed(1)}/10`;
     }
   }
 </script>
