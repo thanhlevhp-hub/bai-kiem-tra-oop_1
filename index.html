@@ -22,10 +22,10 @@
     .user-info input:focus { border-color: var(--primary); }
     
     .pool-section { background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 25px; border: 1px solid var(--border); }
-    .pool-title { font-weight: 600; margin-bottom: 10px; color: #475569; }
+    .pool-title { font-weight: 600; margin-bottom: 10px; color: #475569; font-size: 14px; }
     .card-pool { display: flex; flex-wrap: wrap; gap: 10px; min-height: 52px; padding: 6px; border-radius: 6px; }
 
-    /* Thẻ kéo thả */
+    /* Thẻ đối tượng */
     .drag-item {
       padding: 8px 14px;
       border-radius: 8px;
@@ -40,8 +40,13 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.08);
       background: #ffffff;
       border: 1px solid #cbd5e1;
+      transition: transform 0.15s, border-color 0.15s;
     }
     .drag-item:active { cursor: grabbing; }
+    .drag-item.selected {
+      outline: 3px solid #2563eb;
+      transform: scale(1.05);
+    }
 
     .c-red { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
     .c-blue { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
@@ -57,7 +62,7 @@
     .t2-title-3 { color: #d97706; }
     .t2-title-4 { color: #16a34a; }
 
-    /* Hộp nhận thẻ */
+    /* Ô thả */
     .drop-slot {
       border: 2px dashed #94a3b8;
       border-radius: 8px;
@@ -69,6 +74,7 @@
       margin: 4px auto;
       padding: 4px;
       position: relative;
+      cursor: pointer;
     }
     .drop-slot .placeholder-text {
       color: #94a3b8;
@@ -78,10 +84,9 @@
       position: absolute;
     }
     .drop-slot .drag-item {
-      position: relative;
-      z-index: 2;
       width: 100%;
       justify-content: center;
+      z-index: 2;
     }
 
     .t1-slot { width: 240px; }
@@ -124,9 +129,8 @@
     <input type="text" id="hoTen" placeholder="Nhập Họ và Tên của bạn..." required>
   </div>
 
-  <!-- Kho thẻ -->
   <div class="pool-section">
-    <div class="pool-title">Kéo các lớp sau vào đúng vị trí trên cây kế thừa:</div>
+    <div class="pool-title">💡 Kéo thả hoặc Chạm chọn thẻ rồi chạm vào ô tương ứng trên sơ đồ:</div>
     <div id="cardPool" class="card-pool">
       <div class="drag-item c-blue" data-class="XEHAIBANH">📦 Lớp XEHAIBANH</div>
       <div class="drag-item c-gray" data-class="XEXICHLO">📦 Lớp XEXICHLO</div>
@@ -141,7 +145,6 @@
     </div>
   </div>
 
-  <!-- Cây kế thừa -->
   <div class="tree-container">
     <div class="tier-title t1-title">TẦNG 1: LỚP CƠ SỞ GỐC (ROOT BASE CLASS)</div>
     <div class="drop-slot t1-slot" data-key="root">
@@ -151,7 +154,6 @@
     <div class="line-connector"></div>
 
     <div class="branches">
-      <!-- 2 BÁNH -->
       <div class="branch">
         <div class="tier-title t2-title-2">TẦNG 2: NHÓM 2 BÁNH</div>
         <div class="drop-slot branch-t2" data-key="t2_2banh">
@@ -168,7 +170,6 @@
         </div>
       </div>
 
-      <!-- 3 BÁNH -->
       <div class="branch">
         <div class="tier-title t2-title-3">TẦNG 2: NHÓM 3 BÁNH</div>
         <div class="drop-slot branch-t2" data-key="t2_3banh">
@@ -185,7 +186,6 @@
         </div>
       </div>
 
-      <!-- 4 BÁNH -->
       <div class="branch">
         <div class="tier-title t2-title-4">TẦNG 2: NHÓM 4 BÁNH</div>
         <div class="drop-slot branch-t2" data-key="t2_4banh">
@@ -208,20 +208,30 @@
 </div>
 
 <script>
-  // URL Google Apps Script đã chèn chính xác từ ảnh của bạn
+  // URL Web App Google Apps Script đã nối liền dòng chuẩn xác
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_jsjr4aX3saS7EHidK5NOO2LzBJTuTduwnwla90Z7nZF90qXtWXTkl89Auz4p2L35g/exec";
 
   const pool = document.getElementById('cardPool');
+  const slots = document.querySelectorAll('.drop-slot');
 
-  // Khởi tạo kéo thả cho kho thẻ
+  function updatePlaceholders() {
+    slots.forEach(slot => {
+      const ph = slot.querySelector('.placeholder-text');
+      const hasItem = slot.querySelector('.drag-item') !== null;
+      if (ph) ph.style.display = hasItem ? 'none' : 'block';
+    });
+  }
+
+  // Khởi tạo SortableJS cho Kho thẻ
   new Sortable(pool, {
     group: 'shared-tree',
     animation: 150,
-    sort: true
+    sort: true,
+    onAdd: updatePlaceholders,
+    onRemove: updatePlaceholders
   });
 
-  // Khởi tạo từng ô nhận thẻ
-  const slots = document.querySelectorAll('.drop-slot');
+  // Khởi tạo SortableJS cho từng ô nhận thẻ
   slots.forEach(slot => {
     new Sortable(slot, {
       group: {
@@ -231,25 +241,61 @@
         }
       },
       animation: 150,
-      onAdd: function () {
-        const ph = slot.querySelector('.placeholder-text');
-        if (ph) ph.style.display = 'none';
-      },
-      onRemove: function () {
-        if (slot.querySelectorAll('.drag-item').length === 0) {
-          const ph = slot.querySelector('.placeholder-text');
-          if (ph) ph.style.display = 'block';
-        }
-      }
+      onAdd: updatePlaceholders,
+      onRemove: updatePlaceholders
     });
   });
 
-  // Xáo trộn vị trí các thẻ ban đầu
+  // Hỗ trợ bổ sung: Bấm/Chạm để chọn thẻ và chuyển vào ô (rất nhạy cho mobile)
+  let selectedItem = null;
+  document.addEventListener('click', function(e) {
+    const item = e.target.closest('.drag-item');
+    const slot = e.target.closest('.drop-slot');
+    const poolEl = e.target.closest('#cardPool');
+
+    if (item) {
+      if (selectedItem === item) {
+        selectedItem.classList.remove('selected');
+        selectedItem = null;
+      } else {
+        if (selectedItem) selectedItem.classList.remove('selected');
+        selectedItem = item;
+        selectedItem.classList.add('selected');
+      }
+      return;
+    }
+
+    if (selectedItem && slot) {
+      if (slot.querySelectorAll('.drag-item').length === 0) {
+        slot.appendChild(selectedItem);
+        selectedItem.classList.remove('selected');
+        selectedItem = null;
+        updatePlaceholders();
+      }
+      return;
+    }
+
+    if (selectedItem && poolEl) {
+      poolEl.appendChild(selectedItem);
+      selectedItem.classList.remove('selected');
+      selectedItem = null;
+      updatePlaceholders();
+      return;
+    }
+
+    if (selectedItem && !e.target.closest('.drag-item')) {
+      selectedItem.classList.remove('selected');
+      selectedItem = null;
+    }
+  });
+
+  // Xáo trộn vị trí ngẫu nhiên ban đầu
   for (let i = pool.children.length; i >= 0; i--) {
     pool.appendChild(pool.children[Math.random() * i | 0]);
   }
+  updatePlaceholders();
 
-  // Đáp án chuẩn
+  // Đáp án chấm điểm
   const CORRECT_RULES = {
     root: ["XE"],
     t2_2banh: ["XEHAIBANH"],
@@ -314,7 +360,7 @@
       alert(`Nộp bài thành công!\nĐiểm của bạn: ${(correctCount / 10 * 10).toFixed(1)}/10 (${correctCount}/10 vị trí đúng).`);
       btn.innerText = "ĐÃ HOÀN THÀNH";
     } catch (err) {
-      alert("Có lỗi kết nối. Vui lòng thử lại!");
+      alert("Có lỗi kết nối máy chủ. Vui lòng thử lại!");
       btn.disabled = false;
       btn.innerText = "NỘP BÀI VÀ GHI ĐIỂM";
     }
