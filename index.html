@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiểm tra Phân cấp kế thừa OOP</title>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); margin: 0; padding: 15px; color: #1e293b; }
+    .container { max-width: 1000px; margin: 0 auto; background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #0f172a; margin-top: 0; margin-bottom: 16px; }
+    
+    /* Ô nhập thông tin */
+    .user-info { margin-bottom: 20px; }
+    .user-info input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 15px; outline: none; }
+    .user-info input:focus { border-color: var(--primary); }
+    
+    /* Vùng kho thẻ */
+    .pool-section { background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 25px; border: 1px solid var(--border); }
+    .pool-title { font-weight: 600; margin-bottom: 10px; color: #475569; }
+    .card-pool { display: flex; flex-wrap: wrap; gap: 10px; min-height: 48px; }
+
+    /* Thẻ kéo */
+    .drag-item {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: grab;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+    }
+    .drag-item:active { cursor: grabbing; }
+
+    .c-red { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+    .c-blue { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
+    .c-green { background: #dcfce7; border-color: #86efac; color: #166534; }
+    .c-yellow { background: #fef3c7; border-color: #fde047; color: #854d0e; }
+    .c-gray { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+
+    /* Khung cây sơ đồ */
+    .tree-container { border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px 10px; background: #fff; }
+    .tier-title { text-align: center; font-weight: 700; font-size: 13px; margin-bottom: 8px; text-transform: uppercase; }
+    .t1-title { color: #dc2626; }
+    .t2-title-2 { color: #4f46e5; }
+    .t2-title-3 { color: #d97706; }
+    .t2-title-4 { color: #16a34a; }
+
+    /* Vị trí thả */
+    .drop-slot {
+      border: 2px dashed #94a3b8;
+      border-radius: 8px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fafafa;
+      margin: 4px auto;
+      padding: 4px;
+      transition: background 0.2s;
+    }
+    .drop-slot.empty::before {
+      content: attr(data-placeholder);
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .t1-slot { width: 220px; }
+    .line-connector { height: 2px; background: #cbd5e1; margin: 15px auto; width: 75%; position: relative; }
+    .line-connector::before { content: ""; position: absolute; left: 50%; top: -8px; width: 8px; height: 8px; background: #94a3b8; border-radius: 50%; transform: translateX(-50%); }
+
+    .branches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .branch { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; background: #fcfcfd; }
+    .branch-t2 { width: 100%; max-width: 200px; margin: 0 auto 10px auto; }
+    .branch-t3-container { display: flex; gap: 8px; justify-content: center; }
+    .branch-t3-container .drop-slot { flex: 1; max-width: 130px; }
+
+    /* Nút nộp bài */
+    .btn-submit {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    .btn-submit:hover { background: #1d4ed8; }
+    .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    @media (max-width: 768px) {
+      .branches { grid-template-columns: 1fr; }
+      .line-connector { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>BÀI KIỂM TRA PHÂN CẤP KẾ THỪA OOP</h2>
+
+  <!-- Nhập họ và tên -->
+  <div class="user-info">
+    <input type="text" id="hoTen" placeholder="Nhập Họ và Tên của bạn..." required>
+  </div>
+
+  <!-- Kho thẻ -->
+  <div class="pool-section">
+    <div class="pool-title">Kéo các lớp sau vào đúng vị trí trên cây kế thừa:</div>
+    <div id="cardPool" class="card-pool">
+      <div class="drag-item c-blue" data-class="XEHAIBANH">📦 Lớp XEHAIBANH</div>
+      <div class="drag-item c-gray" data-class="XEXICHLO">📦 Lớp XEXICHLO</div>
+      <div class="drag-item c-gray" data-class="XEHOI">📦 Lớp XEHOI</div>
+      <div class="drag-item c-red" data-class="XE">📦 Lớp XE</div>
+      <div class="drag-item c-gray" data-class="XEGANMAY">📦 Lớp XEGANMAY</div>
+      <div class="drag-item c-gray" data-class="XELAM">📦 Lớp XELAM</div>
+      <div class="drag-item c-green" data-class="XEBONBANH">📦 Lớp XEBONBANH</div>
+      <div class="drag-item c-yellow" data-class="XEBABANH">📦 Lớp XEBABANH</div>
+      <div class="drag-item c-gray" data-class="XEDAP">📦 Lớp XEDAP</div>
+      <div class="drag-item c-gray" data-class="XETAINHE">📦 Lớp XETAINHE</div>
+    </div>
+  </div>
+
+  <!-- Sơ đồ cây -->
+  <div class="tree-container">
+    <!-- TẦNG 1 -->
+    <div class="tier-title t1-title">TẦNG 1: LỚP CƠ SỞ GỐC (ROOT BASE CLASS)</div>
+    <div class="drop-slot empty t1-slot" data-key="root" data-placeholder="Thả Lớp Gốc Vào Đây"></div>
+
+    <div class="line-connector"></div>
+
+    <!-- TẦNG 2 & 3 -->
+    <div class="branches">
+      <!-- 2 BÁNH -->
+      <div class="branch">
+        <div class="tier-title t2-title-2">TẦNG 2: NHÓM 2 BÁNH</div>
+        <div class="drop-slot empty branch-t2" data-key="t2_2banh" data-placeholder="Thả Lớp Nhóm 2 Bánh"></div>
+        <div class="tier-title" style="font-size: 11px; color:#64748b; margin-top:10px;">TẦNG 3: LỚP CON CỤ THỂ</div>
+        <div class="branch-t3-container">
+          <div class="drop-slot empty" data-key="t3_2banh" data-placeholder="Lớp con 1"></div>
+          <div class="drop-slot empty" data-key="t3_2banh" data-placeholder="Lớp con 2"></div>
+        </div>
+      </div>
+
+      <!-- 3 BÁNH -->
+      <div class="branch">
+        <div class="tier-title t2-title-3">TẦNG 2: NHÓM 3 BÁNH</div>
+        <div class="drop-slot empty branch-t2" data-key="t2_3banh" data-placeholder="Thả Lớp Nhóm 3 Bánh"></div>
+        <div class="tier-title" style="font-size: 11px; color:#64748b; margin-top:10px;">TẦNG 3: LỚP CON CỤ THỂ</div>
+        <div class="branch-t3-container">
+          <div class="drop-slot empty" data-key="t3_3banh" data-placeholder="Lớp con 1"></div>
+          <div class="drop-slot empty" data-key="t3_3banh" data-placeholder="Lớp con 2"></div>
+        </div>
+      </div>
+
+      <!-- 4 BÁNH -->
+      <div class="branch">
+        <div class="tier-title t2-title-4">TẦNG 2: NHÓM 4 BÁNH</div>
+        <div class="drop-slot empty branch-t2" data-key="t2_4banh" data-placeholder="Thả Lớp Nhóm 4 Bánh"></div>
+        <div class="tier-title" style="font-size: 11px; color:#64748b; margin-top:10px;">TẦNG 3: LỚP CON CỤ THỂ</div>
+        <div class="branch-t3-container">
+          <div class="drop-slot empty" data-key="t3_4banh" data-placeholder="Lớp con 1"></div>
+          <div class="drop-slot empty" data-key="t3_4banh" data-placeholder="Lớp con 2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button id="btnSubmit" class="btn-submit" onclick="submitExam()">NỘP BÀI VÀ GHI ĐIỂM</button>
+</div>
+
+<script>
+  // DÁN URL WEB APP CỦA BẠN VÀO ĐÂY
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_jsjr4aX3saS7EHidK5NOO2LzBJTubTduwnwIa90Z7nZF90qXtWXTkl89Auz4p2L35g/exec
+";
+
+  const pool = document.getElementById('cardPool');
+  new Sortable(pool, { group: 'shared', animation: 150 });
+
+  const slots = document.querySelectorAll('.drop-slot');
+  slots.forEach(slot => {
+    new Sortable(slot, {
+      group: 'shared',
+      animation: 150,
+      max: 1,
+      onAdd: () => slot.classList.remove('empty'),
+      onRemove: () => { if (slot.children.length === 0) slot.classList.add('empty'); }
+    });
+  });
+
+  // Xáo ngẫu nhiên
+  for (let i = pool.children.length; i >= 0; i--) {
+    pool.appendChild(pool.children[Math.random() * i | 0]);
+  }
+
+  // Đáp án chuẩn
+  const CORRECT_RULES = {
+    root: ["XE"],
+    t2_2banh: ["XEHAIBANH"],
+    t3_2banh: ["XEDAP", "XEGANMAY"],
+    t2_3banh: ["XEBABANH"],
+    t3_3banh: ["XELAM", "XEXICHLO"],
+    t2_4banh: ["XEBONBANH"],
+    t3_4banh: ["XEHOI", "XETAINHE"]
+  };
+
+  async function submitExam() {
+    const hoTen = document.getElementById('hoTen').value.trim();
+
+    if (!hoTen) {
+      alert("Vui lòng nhập Họ và Tên trước khi nộp bài!");
+      return;
+    }
+
+    if (pool.children.length > 0) {
+      if (!confirm("Bạn vẫn còn các lớp chưa xếp vào cây. Bạn có chắc chắn muốn nộp không?")) {
+        return;
+      }
+    }
+
+    let correctCount = 0;
+    const placed = {};
+    slots.forEach(slot => {
+      const key = slot.getAttribute('data-key');
+      if (!placed[key]) placed[key] = [];
+      const item = slot.querySelector('.drag-item');
+      if (item) {
+        placed[key].push(item.getAttribute('data-class'));
+      }
+    });
+
+    for (const key in CORRECT_RULES) {
+      const targetItems = CORRECT_RULES[key];
+      const userItems = placed[key] || [];
+      userItems.forEach(item => {
+        if (targetItems.includes(item)) correctCount++;
+      });
+    }
+
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.innerText = "Đang gửi kết quả...";
+
+    const payload = {
+      hoTen: hoTen,
+      correctCount: correctCount
+    };
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      alert(`Nộp bài thành công!\nĐiểm của bạn: ${(correctCount / 10 * 10).toFixed(1)}/10 (${correctCount}/10 vị trí đúng).`);
+      btn.innerText = "ĐÃ HOÀN THÀNH";
+    } catch (err) {
+      alert("Có lỗi kết nối máy chủ. Vui lòng thử lại hoặc báo giảng viên!");
+      btn.disabled = false;
+      btn.innerText = "NỘP BÀI VÀ GHI ĐIỂM";
+    }
+  }
+</script>
+
+</body>
+</html>
