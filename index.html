@@ -90,7 +90,7 @@
       z-index: 2;
     }
 
-    /* Hiệu ứng hiển thị trực quan */
+    /* Hiệu ứng hiển thị kết quả */
     .drop-slot.slot-correct {
       border: 2px solid #16a34a !important;
       background-color: #f0fdf4 !important;
@@ -249,7 +249,7 @@
     </div>
   </div>
 
-  <!-- Bảng thông báo đối tượng đúng -->
+  <!-- Bảng thông báo cụ thể đối tượng đúng -->
   <div id="resultBox" class="result-box">
     <h3>KẾT QUẢ ĐỐI SOÁT CHI TIẾT:</h3>
     <div id="scoreText" style="font-size: 16px; margin-bottom: 10px;"></div>
@@ -260,8 +260,8 @@
 </div>
 
 <script>
-  // URL Web App của bạn
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_jsjr4aX3saS7EHidK5NOO2LzBJTuTduwnwla90Z7nZF90qXtWXTkl89Auz4p2L35g/exec";
+  // ĐỊA CHỈ URL WEB APP MỚI CỦA BẠN ĐÃ ĐƯỢC CẬP NHẬT CHUẨN XÁC
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_jsjr4aX3saS7EHidK5NOO2LzBJTubTduwnwIa90Z7nZF90qXtWXTkl89Auz4p2L35g/exec";
 
   const pool = document.getElementById('cardPool');
   const slots = document.querySelectorAll('.drop-slot');
@@ -276,7 +276,7 @@
     });
   }
 
-  // Khởi tạo kéo thả Sortable
+  // Khởi tạo SortableJS cho kho thẻ
   const poolSortable = new Sortable(pool, {
     group: 'shared-tree',
     animation: 150,
@@ -286,6 +286,7 @@
   });
   sortableInstances.push(poolSortable);
 
+  // Khởi tạo SortableJS cho các ô chứa
   slots.forEach(slot => {
     const s = new Sortable(slot, {
       group: {
@@ -302,7 +303,7 @@
     sortableInstances.push(s);
   });
 
-  // Hỗ trợ chạm/click chọn thẻ rồi đặt vào ô
+  // Hỗ trợ chạm/click chọn thẻ rồi chạm ô trên điện thoại
   let selectedItem = null;
   document.addEventListener('click', function(e) {
     if (isSubmitted) return;
@@ -347,13 +348,13 @@
     }
   });
 
-  // Xáo trộn vị trí ngẫu nhiên ban đầu
+  // Xáo trộn vị trí thẻ ngẫu nhiên ban đầu
   for (let i = pool.children.length; i >= 0; i--) {
     pool.appendChild(pool.children[Math.random() * i | 0]);
   }
   updatePlaceholders();
 
-  // Quy tắc đáp án chuẩn
+  // Đáp án chuẩn
   const CORRECT_RULES = {
     root: ["XE"],
     t2_2banh: ["XEHAIBANH"],
@@ -416,12 +417,12 @@
       }
     });
 
-    // Khóa giao diện
+    // Khóa giao diện sau khi bấm nộp bài
     isSubmitted = true;
     sortableInstances.forEach(inst => inst.option("disabled", true));
     document.getElementById('hoTen').disabled = true;
 
-    // Hiển thị danh sách đối tượng đúng
+    // Hiển thị kết quả chi tiết
     const resultBox = document.getElementById('resultBox');
     const scoreText = document.getElementById('scoreText');
     const correctItemsList = document.getElementById('correctItemsList');
@@ -437,9 +438,9 @@
 
     const btn = document.getElementById('btnSubmit');
     btn.disabled = true;
-    btn.innerText = "Đang gửi kết quả lên hệ thống...";
+    btn.innerText = "Đang gửi kết quả lên hệ thống Google Sheets...";
 
-    // Gửi dữ liệu qua GET Parameter kết hợp Image Beacon để vượt triệt để rào cản CORS
+    // Gửi bằng GET parameter kết hợp đối tượng Image để đảm bảo không bị chặn bởi bất kỳ chính sách CORS nào
     const targetUrl = `${SCRIPT_URL}?hoTen=${encodeURIComponent(hoTen)}&correctCount=${encodeURIComponent(correctCount)}&_t=${Date.now()}`;
 
     try {
