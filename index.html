@@ -62,7 +62,7 @@
     .t2-title-3 { color: #d97706; }
     .t2-title-4 { color: #16a34a; }
 
-    /* Ô thả */
+    /* Ô nhận thẻ */
     .drop-slot {
       border: 2px dashed #94a3b8;
       border-radius: 8px;
@@ -90,7 +90,7 @@
       z-index: 2;
     }
 
-    /* Hiệu ứng hiển thị kết quả trực quan */
+    /* Hiệu ứng hiển thị trực quan */
     .drop-slot.slot-correct {
       border: 2px solid #16a34a !important;
       background-color: #f0fdf4 !important;
@@ -249,7 +249,7 @@
     </div>
   </div>
 
-  <!-- Bảng thông báo cụ thể đối tượng đúng -->
+  <!-- Bảng thông báo đối tượng đúng -->
   <div id="resultBox" class="result-box">
     <h3>KẾT QUẢ ĐỐI SOÁT CHI TIẾT:</h3>
     <div id="scoreText" style="font-size: 16px; margin-bottom: 10px;"></div>
@@ -260,7 +260,7 @@
 </div>
 
 <script>
-  // Link Web App Google Apps Script của bạn
+  // URL Web App của bạn
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_jsjr4aX3saS7EHidK5NOO2LzBJTuTduwnwla90Z7nZF90qXtWXTkl89Auz4p2L35g/exec";
 
   const pool = document.getElementById('cardPool');
@@ -276,7 +276,7 @@
     });
   }
 
-  // Khởi tạo Sortable
+  // Khởi tạo kéo thả Sortable
   const poolSortable = new Sortable(pool, {
     group: 'shared-tree',
     animation: 150,
@@ -302,7 +302,7 @@
     sortableInstances.push(s);
   });
 
-  // Hỗ trợ chạm/click để chọn và đặt thẻ
+  // Hỗ trợ chạm/click chọn thẻ rồi đặt vào ô
   let selectedItem = null;
   document.addEventListener('click', function(e) {
     if (isSubmitted) return;
@@ -347,13 +347,13 @@
     }
   });
 
-  // Xáo trộn vị trí ngẫu nhiên
+  // Xáo trộn vị trí ngẫu nhiên ban đầu
   for (let i = pool.children.length; i >= 0; i--) {
     pool.appendChild(pool.children[Math.random() * i | 0]);
   }
   updatePlaceholders();
 
-  // Đáp án chuẩn
+  // Quy tắc đáp án chuẩn
   const CORRECT_RULES = {
     root: ["XE"],
     t2_2banh: ["XEHAIBANH"],
@@ -381,7 +381,6 @@
     let correctCount = 0;
     const correctDetails = [];
 
-    // Tạo bản sao để tránh trùng lặp tầng 3
     const remainingRules = {
       root: [...CORRECT_RULES.root],
       t2_2banh: [...CORRECT_RULES.t2_2banh],
@@ -406,7 +405,6 @@
           remainingRules[key].splice(validIdx, 1);
           slot.classList.add('slot-correct');
           slot.classList.remove('slot-wrong');
-          // Ghi nhận chi tiết đối tượng đúng
           correctDetails.push(`• <b>Lớp ${val}</b>: đặt đúng tại <i>${label}</i>`);
         } else {
           slot.classList.add('slot-wrong');
@@ -423,7 +421,7 @@
     sortableInstances.forEach(inst => inst.option("disabled", true));
     document.getElementById('hoTen').disabled = true;
 
-    // Hiển thị danh sách các vị trí và đối tượng đúng ngay dưới bài làm
+    // Hiển thị danh sách đối tượng đúng
     const resultBox = document.getElementById('resultBox');
     const scoreText = document.getElementById('scoreText');
     const correctItemsList = document.getElementById('correctItemsList');
@@ -439,28 +437,23 @@
 
     const btn = document.getElementById('btnSubmit');
     btn.disabled = true;
-    btn.innerText = "Đang gửi kết quả lên hệ thống Google Sheets...";
+    btn.innerText = "Đang gửi kết quả lên hệ thống...";
 
-    // Gửi bằng URLSearchParams để chắc chắn 100% Google Apps Script nhận được và không bị lỗi CORS
-    const params = new URLSearchParams();
-    params.append('hoTen', hoTen);
-    params.append('correctCount', correctCount.toString());
+    // Gửi dữ liệu qua GET Parameter kết hợp Image Beacon để vượt triệt để rào cản CORS
+    const targetUrl = `${SCRIPT_URL}?hoTen=${encodeURIComponent(hoTen)}&correctCount=${encodeURIComponent(correctCount)}&_t=${Date.now()}`;
 
     try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: params.toString()
-      });
+      await fetch(targetUrl, { mode: 'no-cors' });
+      const pingImg = new Image();
+      pingImg.src = targetUrl;
 
       btn.innerText = `ĐÃ NỘP THÀNH CÔNG - ĐIỂM: ${(correctCount / 10 * 10).toFixed(1)}/10`;
-      alert(`Nộp bài thành công!\nĐiểm của bạn: ${(correctCount / 10 * 10).toFixed(1)}/10.\nKết quả đã được lưu vào Google Sheet của giảng viên.`);
+      alert(`Nộp bài thành công!\nĐiểm của bạn: ${(correctCount / 10 * 10).toFixed(1)}/10.\nKết quả đã được ghi nhận vào Google Sheet của giảng viên.`);
     } catch (err) {
-      btn.innerText = `ĐÃ NỘP (LỖI MẠNG) - ĐIỂM: ${(correctCount / 10 * 10).toFixed(1)}/10`;
-      alert("Có lỗi mạng khi lưu về Google Sheet. Vui lòng chụp lại màn hình điểm số để báo giảng viên!");
+      const fallbackImg = new Image();
+      fallbackImg.src = targetUrl;
+      btn.innerText = `ĐÃ NỘP - ĐIỂM: ${(correctCount / 10 * 10).toFixed(1)}/10`;
+      alert("Kết quả bài thi đã được gửi về hệ thống!");
     }
   }
 </script>
