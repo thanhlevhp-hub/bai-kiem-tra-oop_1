@@ -260,7 +260,9 @@
 </div>
 
 <script>
-  // ĐỊA CHỈ URL WEB APP MỚI CỦA BẠN ĐÃ ĐƯỢC CẬP NHẬT CHUẨN XÁC
+  // Ghi nhận thời điểm sinh viên bắt đầu mở bài
+  const START_TIME = Date.now();
+
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_jsjr4aX3saS7EHidK5NOO2LzBJTubTduwnwIa90Z7nZF90qXtWXTkl89Auz4p2L35g/exec";
 
   const pool = document.getElementById('cardPool');
@@ -276,7 +278,7 @@
     });
   }
 
-  // Khởi tạo SortableJS cho kho thẻ
+  // Khởi tạo Sortable
   const poolSortable = new Sortable(pool, {
     group: 'shared-tree',
     animation: 150,
@@ -286,7 +288,6 @@
   });
   sortableInstances.push(poolSortable);
 
-  // Khởi tạo SortableJS cho các ô chứa
   slots.forEach(slot => {
     const s = new Sortable(slot, {
       group: {
@@ -303,7 +304,7 @@
     sortableInstances.push(s);
   });
 
-  // Hỗ trợ chạm/click chọn thẻ rồi chạm ô trên điện thoại
+  // Hỗ trợ chạm/click chọn thẻ rồi đặt vào ô
   let selectedItem = null;
   document.addEventListener('click', function(e) {
     if (isSubmitted) return;
@@ -348,7 +349,7 @@
     }
   });
 
-  // Xáo trộn vị trí thẻ ngẫu nhiên ban đầu
+  // Xáo trộn ngẫu nhiên
   for (let i = pool.children.length; i >= 0; i--) {
     pool.appendChild(pool.children[Math.random() * i | 0]);
   }
@@ -378,6 +379,12 @@
         return;
       }
     }
+
+    // Tính thời gian làm bài chính xác (Phút & Giây)
+    const elapsedSeconds = Math.max(1, Math.round((Date.now() - START_TIME) / 1000));
+    const minutes = Math.floor(elapsedSeconds / 60);
+    const seconds = elapsedSeconds % 60;
+    const thoiGianLam = minutes > 0 ? `${minutes} phút ${seconds} giây` : `${seconds} giây`;
 
     let correctCount = 0;
     const correctDetails = [];
@@ -417,7 +424,7 @@
       }
     });
 
-    // Khóa giao diện sau khi bấm nộp bài
+    // Khóa giao diện bài thi
     isSubmitted = true;
     sortableInstances.forEach(inst => inst.option("disabled", true));
     document.getElementById('hoTen').disabled = true;
@@ -428,7 +435,7 @@
     const correctItemsList = document.getElementById('correctItemsList');
     
     resultBox.style.display = 'block';
-    scoreText.innerHTML = `Họ tên: <b>${hoTen}</b> | Điểm số: <b style="color: #2563eb;">${(correctCount / 10 * 10).toFixed(1)}/10</b> (${correctCount}/10 vị trí đúng)`;
+    scoreText.innerHTML = `Họ tên: <b>${hoTen}</b> | Thời gian làm: <b>${thoiGianLam}</b><br>Điểm số: <b style="color: #2563eb;">${(correctCount / 10 * 10).toFixed(1)}/10</b> (${correctCount}/10 vị trí đúng)`;
     
     if (correctDetails.length > 0) {
       correctItemsList.innerHTML = "<b>Các vị trí và đối tượng bạn đã chọn ĐÚNG:</b><br>" + correctDetails.join('<br>');
@@ -438,23 +445,18 @@
 
     const btn = document.getElementById('btnSubmit');
     btn.disabled = true;
-    btn.innerText = "Đang gửi kết quả lên hệ thống Google Sheets...";
+    btn.innerText = "Đang lưu kết quả vào Google Sheet...";
 
-    // Gửi bằng GET parameter kết hợp đối tượng Image để đảm bảo không bị chặn bởi bất kỳ chính sách CORS nào
-    const targetUrl = `${SCRIPT_URL}?hoTen=${encodeURIComponent(hoTen)}&correctCount=${encodeURIComponent(correctCount)}&_t=${Date.now()}`;
+    // Gửi DUY NHẤT 1 YÊU CẦU qua fetch để tránh bị lặp 2 dòng
+    const targetUrl = `${SCRIPT_URL}?hoTen=${encodeURIComponent(hoTen)}&thoiGianLam=${encodeURIComponent(thoiGianLam)}&correctCount=${encodeURIComponent(correctCount)}&_t=${Date.now()}`;
 
     try {
       await fetch(targetUrl, { mode: 'no-cors' });
-      const pingImg = new Image();
-      pingImg.src = targetUrl;
-
       btn.innerText = `ĐÃ NỘP THÀNH CÔNG - ĐIỂM: ${(correctCount / 10 * 10).toFixed(1)}/10`;
-      alert(`Nộp bài thành công!\nĐiểm của bạn: ${(correctCount / 10 * 10).toFixed(1)}/10.\nKết quả đã được ghi nhận vào Google Sheet của giảng viên.`);
+      alert(`Nộp bài thành công!\nThời gian hoàn thành: ${thoiGianLam}\nĐiểm số: ${(correctCount / 10 * 10).toFixed(1)}/10.\nKết quả đã được ghi 1 dòng duy nhất vào Google Sheet.`);
     } catch (err) {
-      const fallbackImg = new Image();
-      fallbackImg.src = targetUrl;
       btn.innerText = `ĐÃ NỘP - ĐIỂM: ${(correctCount / 10 * 10).toFixed(1)}/10`;
-      alert("Kết quả bài thi đã được gửi về hệ thống!");
+      alert("Đã ghi nhận bài nộp!");
     }
   }
 </script>
