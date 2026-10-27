@@ -90,17 +90,17 @@
       z-index: 2;
     }
 
-    /* Hiệu ứng hiển thị đúng / sai */
+    /* Hiệu ứng hiển thị kết quả trực quan */
     .drop-slot.slot-correct {
       border: 2px solid #16a34a !important;
       background-color: #f0fdf4 !important;
     }
     .drop-slot.slot-correct::after {
-      content: "✔ Đúng";
+      content: "✔ ĐÚNG";
       position: absolute;
       bottom: -18px;
       font-size: 11px;
-      font-weight: bold;
+      font-weight: 800;
       color: #16a34a;
       z-index: 10;
     }
@@ -110,16 +110,16 @@
       background-color: #fef2f2 !important;
     }
     .drop-slot.slot-wrong::after {
-      content: "✖ Sai";
+      content: "✖ SAI";
       position: absolute;
       bottom: -18px;
       font-size: 11px;
-      font-weight: bold;
+      font-weight: 800;
       color: #dc2626;
       z-index: 10;
     }
 
-    .t1-slot { width: 240px; margin-bottom: 12px; }
+    .t1-slot { width: 240px; margin-bottom: 14px; }
     .line-connector { height: 2px; background: #cbd5e1; margin: 15px auto; width: 75%; position: relative; }
     .line-connector::before { content: ""; position: absolute; left: 50%; top: -8px; width: 8px; height: 8px; background: #94a3b8; border-radius: 50%; transform: translateX(-50%); }
 
@@ -128,6 +128,18 @@
     .branch-t2 { width: 100%; max-width: 200px; margin: 0 auto 16px auto; }
     .branch-t3-container { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
     .branch-t3-container .drop-slot { flex: 1; max-width: 135px; }
+
+    /* Hộp kết quả chi tiết */
+    .result-box {
+      display: none;
+      margin-top: 20px;
+      padding: 16px;
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+    }
+    .result-box h3 { margin-top: 0; color: #0f172a; }
+    .correct-list { color: #166534; font-weight: 600; line-height: 1.6; }
 
     .btn-submit {
       width: 100%;
@@ -177,56 +189,59 @@
 
   <div class="tree-container">
     <div class="tier-title t1-title">TẦNG 1: LỚP CƠ SỞ GỐC (ROOT BASE CLASS)</div>
-    <div class="drop-slot t1-slot" data-key="root">
+    <div class="drop-slot t1-slot" data-key="root" data-label="Tầng 1 (Gốc)">
       <span class="placeholder-text">Thả Lớp Gốc Vào Đây</span>
     </div>
 
     <div class="line-connector"></div>
 
     <div class="branches">
+      <!-- 2 BÁNH -->
       <div class="branch">
         <div class="tier-title t2-title-2">TẦNG 2: NHÓM 2 BÁNH</div>
-        <div class="drop-slot branch-t2" data-key="t2_2banh">
+        <div class="drop-slot branch-t2" data-key="t2_2banh" data-label="Tầng 2 (Nhóm 2 bánh)">
           <span class="placeholder-text">Thả Lớp Nhóm 2 Bánh</span>
         </div>
         <div class="tier-title" style="font-size: 11px; color:#64748b; margin-top:10px;">TẦNG 3: LỚP CON CỤ THỂ</div>
         <div class="branch-t3-container">
-          <div class="drop-slot" data-key="t3_2banh">
+          <div class="drop-slot" data-key="t3_2banh" data-label="Tầng 3 (Con nhóm 2 bánh)">
             <span class="placeholder-text">Lớp con 1</span>
           </div>
-          <div class="drop-slot" data-key="t3_2banh">
+          <div class="drop-slot" data-key="t3_2banh" data-label="Tầng 3 (Con nhóm 2 bánh)">
             <span class="placeholder-text">Lớp con 2</span>
           </div>
         </div>
       </div>
 
+      <!-- 3 BÁNH -->
       <div class="branch">
         <div class="tier-title t2-title-3">TẦNG 2: NHÓM 3 BÁNH</div>
-        <div class="drop-slot branch-t2" data-key="t2_3banh">
+        <div class="drop-slot branch-t2" data-key="t2_3banh" data-label="Tầng 2 (Nhóm 3 bánh)">
           <span class="placeholder-text">Thả Lớp Nhóm 3 Bánh</span>
         </div>
         <div class="tier-title" style="font-size: 11px; color:#64748b; margin-top:10px;">TẦNG 3: LỚP CON CỤ THỂ</div>
         <div class="branch-t3-container">
-          <div class="drop-slot" data-key="t3_3banh">
+          <div class="drop-slot" data-key="t3_3banh" data-label="Tầng 3 (Con nhóm 3 bánh)">
             <span class="placeholder-text">Lớp con 1</span>
           </div>
-          <div class="drop-slot" data-key="t3_3banh">
+          <div class="drop-slot" data-key="t3_3banh" data-label="Tầng 3 (Con nhóm 3 bánh)">
             <span class="placeholder-text">Lớp con 2</span>
           </div>
         </div>
       </div>
 
+      <!-- 4 BÁNH -->
       <div class="branch">
         <div class="tier-title t2-title-4">TẦNG 2: NHÓM 4 BÁNH</div>
-        <div class="drop-slot branch-t2" data-key="t2_4banh">
+        <div class="drop-slot branch-t2" data-key="t2_4banh" data-label="Tầng 2 (Nhóm 4 bánh)">
           <span class="placeholder-text">Thả Lớp Nhóm 4 Bánh</span>
         </div>
         <div class="tier-title" style="font-size: 11px; color:#64748b; margin-top:10px;">TẦNG 3: LỚP CON CỤ THỂ</div>
         <div class="branch-t3-container">
-          <div class="drop-slot" data-key="t3_4banh">
+          <div class="drop-slot" data-key="t3_4banh" data-label="Tầng 3 (Con nhóm 4 bánh)">
             <span class="placeholder-text">Lớp con 1</span>
           </div>
-          <div class="drop-slot" data-key="t3_4banh">
+          <div class="drop-slot" data-key="t3_4banh" data-label="Tầng 3 (Con nhóm 4 bánh)">
             <span class="placeholder-text">Lớp con 2</span>
           </div>
         </div>
@@ -234,10 +249,18 @@
     </div>
   </div>
 
+  <!-- Bảng thông báo cụ thể đối tượng đúng -->
+  <div id="resultBox" class="result-box">
+    <h3>KẾT QUẢ ĐỐI SOÁT CHI TIẾT:</h3>
+    <div id="scoreText" style="font-size: 16px; margin-bottom: 10px;"></div>
+    <div id="correctItemsList" class="correct-list"></div>
+  </div>
+
   <button id="btnSubmit" class="btn-submit" onclick="submitExam()">NỘP BÀI VÀ GHI ĐIỂM</button>
 </div>
 
 <script>
+  // Link Web App Google Apps Script của bạn
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_jsjr4aX3saS7EHidK5NOO2LzBJTuTduwnwla90Z7nZF90qXtWXTkl89Auz4p2L35g/exec";
 
   const pool = document.getElementById('cardPool');
@@ -324,13 +347,13 @@
     }
   });
 
-  // Xáo trộn ngẫu nhiên ban đầu
+  // Xáo trộn vị trí ngẫu nhiên
   for (let i = pool.children.length; i >= 0; i--) {
     pool.appendChild(pool.children[Math.random() * i | 0]);
   }
   updatePlaceholders();
 
-  // Quy tắc kiểm tra đáp án
+  // Đáp án chuẩn
   const CORRECT_RULES = {
     root: ["XE"],
     t2_2banh: ["XEHAIBANH"],
@@ -356,9 +379,9 @@
     }
 
     let correctCount = 0;
+    const correctDetails = [];
 
-    // Đánh dấu từng ô và tính điểm
-    // Dùng bản sao của tập đáp án để tránh trường hợp 2 ô tầng 3 chọn trùng 1 giá trị
+    // Tạo bản sao để tránh trùng lặp tầng 3
     const remainingRules = {
       root: [...CORRECT_RULES.root],
       t2_2banh: [...CORRECT_RULES.t2_2banh],
@@ -371,6 +394,7 @@
 
     slots.forEach(slot => {
       const key = slot.getAttribute('data-key');
+      const label = slot.getAttribute('data-label');
       const item = slot.querySelector('.drag-item');
 
       if (item) {
@@ -379,9 +403,11 @@
 
         if (validIdx !== -1) {
           correctCount++;
-          remainingRules[key].splice(validIdx, 1); // Loại bỏ khỏi tập còn lại
+          remainingRules[key].splice(validIdx, 1);
           slot.classList.add('slot-correct');
           slot.classList.remove('slot-wrong');
+          // Ghi nhận chi tiết đối tượng đúng
+          correctDetails.push(`• <b>Lớp ${val}</b>: đặt đúng tại <i>${label}</i>`);
         } else {
           slot.classList.add('slot-wrong');
           slot.classList.remove('slot-correct');
@@ -392,33 +418,49 @@
       }
     });
 
-    // Khóa giao diện sau khi nộp
+    // Khóa giao diện
     isSubmitted = true;
     sortableInstances.forEach(inst => inst.option("disabled", true));
     document.getElementById('hoTen').disabled = true;
 
+    // Hiển thị danh sách các vị trí và đối tượng đúng ngay dưới bài làm
+    const resultBox = document.getElementById('resultBox');
+    const scoreText = document.getElementById('scoreText');
+    const correctItemsList = document.getElementById('correctItemsList');
+    
+    resultBox.style.display = 'block';
+    scoreText.innerHTML = `Họ tên: <b>${hoTen}</b> | Điểm số: <b style="color: #2563eb;">${(correctCount / 10 * 10).toFixed(1)}/10</b> (${correctCount}/10 vị trí đúng)`;
+    
+    if (correctDetails.length > 0) {
+      correctItemsList.innerHTML = "<b>Các vị trí và đối tượng bạn đã chọn ĐÚNG:</b><br>" + correctDetails.join('<br>');
+    } else {
+      correctItemsList.innerHTML = "<span style='color: #dc2626;'>Chưa có vị trí nào được chọn chính xác.</span>";
+    }
+
     const btn = document.getElementById('btnSubmit');
     btn.disabled = true;
-    btn.innerText = "Đang gửi kết quả lên hệ thống...";
+    btn.innerText = "Đang gửi kết quả lên hệ thống Google Sheets...";
 
-    const payload = {
-      hoTen: hoTen,
-      correctCount: correctCount
-    };
+    // Gửi bằng URLSearchParams để chắc chắn 100% Google Apps Script nhận được và không bị lỗi CORS
+    const params = new URLSearchParams();
+    params.append('hoTen', hoTen);
+    params.append('correctCount', correctCount.toString());
 
     try {
       await fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params.toString()
       });
 
-      alert(`Nộp bài thành công!\nĐiểm của bạn: ${(correctCount / 10 * 10).toFixed(1)}/10 (${correctCount}/10 vị trí đúng).\n\nCác vị trí Đúng (✔ màu xanh) và Sai (✖ màu đỏ) đã được hiển thị trên màn hình để bạn đối chiếu.`);
-      btn.innerText = `ĐÃ HOÀN THÀNH - ĐIỂM: ${(correctCount / 10 * 10).toFixed(1)}/10`;
+      btn.innerText = `ĐÃ NỘP THÀNH CÔNG - ĐIỂM: ${(correctCount / 10 * 10).toFixed(1)}/10`;
+      alert(`Nộp bài thành công!\nĐiểm của bạn: ${(correctCount / 10 * 10).toFixed(1)}/10.\nKết quả đã được lưu vào Google Sheet của giảng viên.`);
     } catch (err) {
-      alert("Có lỗi kết nối máy chủ nộp bài. Vui lòng báo giảng viên!");
-      btn.innerText = `ĐÃ NỘP (LỖI GỬI DỮ LIỆU) - ĐIỂM: ${(correctCount / 10 * 10).toFixed(1)}/10`;
+      btn.innerText = `ĐÃ NỘP (LỖI MẠNG) - ĐIỂM: ${(correctCount / 10 * 10).toFixed(1)}/10`;
+      alert("Có lỗi mạng khi lưu về Google Sheet. Vui lòng chụp lại màn hình điểm số để báo giảng viên!");
     }
   }
 </script>
