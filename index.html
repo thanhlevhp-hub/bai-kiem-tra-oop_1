@@ -17,17 +17,15 @@
     .container { max-width: 1000px; margin: 0 auto; background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
     h2 { text-align: center; color: #0f172a; margin-top: 0; margin-bottom: 16px; }
     
-    /* Ô nhập thông tin */
     .user-info { margin-bottom: 20px; }
     .user-info input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 15px; outline: none; }
     .user-info input:focus { border-color: var(--primary); }
     
-    /* Vùng kho thẻ */
     .pool-section { background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 25px; border: 1px solid var(--border); }
     .pool-title { font-weight: 600; margin-bottom: 10px; color: #475569; }
-    .card-pool { display: flex; flex-wrap: wrap; gap: 10px; min-height: 48px; }
+    .card-pool { display: flex; flex-wrap: wrap; gap: 10px; min-height: 52px; padding: 6px; border-radius: 6px; }
 
-    /* Thẻ kéo */
+    /* Thẻ kéo thả */
     .drag-item {
       padding: 8px 14px;
       border-radius: 8px;
@@ -35,9 +33,11 @@
       font-size: 14px;
       cursor: grab;
       user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
       display: inline-flex;
       align-items: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
       background: #ffffff;
       border: 1px solid #cbd5e1;
     }
@@ -47,9 +47,9 @@
     .c-blue { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
     .c-green { background: #dcfce7; border-color: #86efac; color: #166534; }
     .c-yellow { background: #fef3c7; border-color: #fde047; color: #854d0e; }
-    .c-gray { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+    .c-gray { background: #f8fafc; border-color: #cbd5e1; color: #334155; }
 
-    /* Khung cây sơ đồ */
+    /* Sơ đồ cây */
     .tree-container { border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px 10px; background: #fff; }
     .tier-title { text-align: center; font-weight: 700; font-size: 13px; margin-bottom: 8px; text-transform: uppercase; }
     .t1-title { color: #dc2626; }
@@ -57,27 +57,34 @@
     .t2-title-3 { color: #d97706; }
     .t2-title-4 { color: #16a34a; }
 
-    /* Vị trí thả */
+    /* Hộp nhận thẻ */
     .drop-slot {
       border: 2px dashed #94a3b8;
       border-radius: 8px;
-      min-height: 44px;
+      min-height: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: #fafafa;
       margin: 4px auto;
       padding: 4px;
-      transition: background 0.2s;
+      position: relative;
     }
-    .drop-slot.empty::before {
-      content: attr(data-placeholder);
+    .drop-slot .placeholder-text {
       color: #94a3b8;
       font-size: 13px;
       font-weight: 500;
+      pointer-events: none;
+      position: absolute;
+    }
+    .drop-slot .drag-item {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      justify-content: center;
     }
 
-    .t1-slot { width: 220px; }
+    .t1-slot { width: 240px; }
     .line-connector { height: 2px; background: #cbd5e1; margin: 15px auto; width: 75%; position: relative; }
     .line-connector::before { content: ""; position: absolute; left: 50%; top: -8px; width: 8px; height: 8px; background: #94a3b8; border-radius: 50%; transform: translateX(-50%); }
 
@@ -85,9 +92,8 @@
     .branch { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; background: #fcfcfd; }
     .branch-t2 { width: 100%; max-width: 200px; margin: 0 auto 10px auto; }
     .branch-t3-container { display: flex; gap: 8px; justify-content: center; }
-    .branch-t3-container .drop-slot { flex: 1; max-width: 130px; }
+    .branch-t3-container .drop-slot { flex: 1; max-width: 135px; }
 
-    /* Nút nộp bài */
     .btn-submit {
       width: 100%;
       background: var(--primary);
@@ -114,7 +120,6 @@
 <div class="container">
   <h2>BÀI KIỂM TRA PHÂN CẤP KẾ THỪA OOP</h2>
 
-  <!-- Nhập họ và tên -->
   <div class="user-info">
     <input type="text" id="hoTen" placeholder="Nhập Họ và Tên của bạn..." required>
   </div>
@@ -136,46 +141,64 @@
     </div>
   </div>
 
-  <!-- Sơ đồ cây -->
+  <!-- Cây kế thừa -->
   <div class="tree-container">
-    <!-- TẦNG 1 -->
     <div class="tier-title t1-title">TẦNG 1: LỚP CƠ SỞ GỐC (ROOT BASE CLASS)</div>
-    <div class="drop-slot empty t1-slot" data-key="root" data-placeholder="Thả Lớp Gốc Vào Đây"></div>
+    <div class="drop-slot t1-slot" data-key="root">
+      <span class="placeholder-text">Thả Lớp Gốc Vào Đây</span>
+    </div>
 
     <div class="line-connector"></div>
 
-    <!-- TẦNG 2 & 3 -->
     <div class="branches">
       <!-- 2 BÁNH -->
       <div class="branch">
         <div class="tier-title t2-title-2">TẦNG 2: NHÓM 2 BÁNH</div>
-        <div class="drop-slot empty branch-t2" data-key="t2_2banh" data-placeholder="Thả Lớp Nhóm 2 Bánh"></div>
+        <div class="drop-slot branch-t2" data-key="t2_2banh">
+          <span class="placeholder-text">Thả Lớp Nhóm 2 Bánh</span>
+        </div>
         <div class="tier-title" style="font-size: 11px; color:#64748b; margin-top:10px;">TẦNG 3: LỚP CON CỤ THỂ</div>
         <div class="branch-t3-container">
-          <div class="drop-slot empty" data-key="t3_2banh" data-placeholder="Lớp con 1"></div>
-          <div class="drop-slot empty" data-key="t3_2banh" data-placeholder="Lớp con 2"></div>
+          <div class="drop-slot" data-key="t3_2banh">
+            <span class="placeholder-text">Lớp con 1</span>
+          </div>
+          <div class="drop-slot" data-key="t3_2banh">
+            <span class="placeholder-text">Lớp con 2</span>
+          </div>
         </div>
       </div>
 
       <!-- 3 BÁNH -->
       <div class="branch">
         <div class="tier-title t2-title-3">TẦNG 2: NHÓM 3 BÁNH</div>
-        <div class="drop-slot empty branch-t2" data-key="t2_3banh" data-placeholder="Thả Lớp Nhóm 3 Bánh"></div>
+        <div class="drop-slot branch-t2" data-key="t2_3banh">
+          <span class="placeholder-text">Thả Lớp Nhóm 3 Bánh</span>
+        </div>
         <div class="tier-title" style="font-size: 11px; color:#64748b; margin-top:10px;">TẦNG 3: LỚP CON CỤ THỂ</div>
         <div class="branch-t3-container">
-          <div class="drop-slot empty" data-key="t3_3banh" data-placeholder="Lớp con 1"></div>
-          <div class="drop-slot empty" data-key="t3_3banh" data-placeholder="Lớp con 2"></div>
+          <div class="drop-slot" data-key="t3_3banh">
+            <span class="placeholder-text">Lớp con 1</span>
+          </div>
+          <div class="drop-slot" data-key="t3_3banh">
+            <span class="placeholder-text">Lớp con 2</span>
+          </div>
         </div>
       </div>
 
       <!-- 4 BÁNH -->
       <div class="branch">
         <div class="tier-title t2-title-4">TẦNG 2: NHÓM 4 BÁNH</div>
-        <div class="drop-slot empty branch-t2" data-key="t2_4banh" data-placeholder="Thả Lớp Nhóm 4 Bánh"></div>
+        <div class="drop-slot branch-t2" data-key="t2_4banh">
+          <span class="placeholder-text">Thả Lớp Nhóm 4 Bánh</span>
+        </div>
         <div class="tier-title" style="font-size: 11px; color:#64748b; margin-top:10px;">TẦNG 3: LỚP CON CỤ THỂ</div>
         <div class="branch-t3-container">
-          <div class="drop-slot empty" data-key="t3_4banh" data-placeholder="Lớp con 1"></div>
-          <div class="drop-slot empty" data-key="t3_4banh" data-placeholder="Lớp con 2"></div>
+          <div class="drop-slot" data-key="t3_4banh">
+            <span class="placeholder-text">Lớp con 1</span>
+          </div>
+          <div class="drop-slot" data-key="t3_4banh">
+            <span class="placeholder-text">Lớp con 2</span>
+          </div>
         </div>
       </div>
     </div>
@@ -185,25 +208,43 @@
 </div>
 
 <script>
-  // DÁN URL WEB APP CỦA BẠN VÀO ĐÂY
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_jsjr4aX3saS7EHidK5NOO2LzBJTubTduwnwIa90Z7nZF90qXtWXTkl89Auz4p2L35g/exec
-";
+  // URL Google Apps Script đã chèn chính xác từ ảnh của bạn
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_jsjr4aX3saS7EHidK5NOO2LzBJTuTduwnwla90Z7nZF90qXtWXTkl89Auz4p2L35g/exec";
 
   const pool = document.getElementById('cardPool');
-  new Sortable(pool, { group: 'shared', animation: 150 });
 
+  // Khởi tạo kéo thả cho kho thẻ
+  new Sortable(pool, {
+    group: 'shared-tree',
+    animation: 150,
+    sort: true
+  });
+
+  // Khởi tạo từng ô nhận thẻ
   const slots = document.querySelectorAll('.drop-slot');
   slots.forEach(slot => {
     new Sortable(slot, {
-      group: 'shared',
+      group: {
+        name: 'shared-tree',
+        put: function (to) {
+          return to.el.querySelectorAll('.drag-item').length === 0;
+        }
+      },
       animation: 150,
-      max: 1,
-      onAdd: () => slot.classList.remove('empty'),
-      onRemove: () => { if (slot.children.length === 0) slot.classList.add('empty'); }
+      onAdd: function () {
+        const ph = slot.querySelector('.placeholder-text');
+        if (ph) ph.style.display = 'none';
+      },
+      onRemove: function () {
+        if (slot.querySelectorAll('.drag-item').length === 0) {
+          const ph = slot.querySelector('.placeholder-text');
+          if (ph) ph.style.display = 'block';
+        }
+      }
     });
   });
 
-  // Xáo ngẫu nhiên
+  // Xáo trộn vị trí các thẻ ban đầu
   for (let i = pool.children.length; i >= 0; i--) {
     pool.appendChild(pool.children[Math.random() * i | 0]);
   }
@@ -227,7 +268,7 @@
       return;
     }
 
-    if (pool.children.length > 0) {
+    if (pool.querySelectorAll('.drag-item').length > 0) {
       if (!confirm("Bạn vẫn còn các lớp chưa xếp vào cây. Bạn có chắc chắn muốn nộp không?")) {
         return;
       }
@@ -235,6 +276,7 @@
 
     let correctCount = 0;
     const placed = {};
+
     slots.forEach(slot => {
       const key = slot.getAttribute('data-key');
       if (!placed[key]) placed[key] = [];
@@ -272,7 +314,7 @@
       alert(`Nộp bài thành công!\nĐiểm của bạn: ${(correctCount / 10 * 10).toFixed(1)}/10 (${correctCount}/10 vị trí đúng).`);
       btn.innerText = "ĐÃ HOÀN THÀNH";
     } catch (err) {
-      alert("Có lỗi kết nối máy chủ. Vui lòng thử lại hoặc báo giảng viên!");
+      alert("Có lỗi kết nối. Vui lòng thử lại!");
       btn.disabled = false;
       btn.innerText = "NỘP BÀI VÀ GHI ĐIỂM";
     }
