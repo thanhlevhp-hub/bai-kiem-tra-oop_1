@@ -260,7 +260,7 @@
 </div>
 
 <script>
-  // Ghi nhận thời điểm sinh viên bắt đầu mở bài
+  // Ghi nhận thời điểm bắt đầu mở bài
   const START_TIME = Date.now();
 
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_jsjr4aX3saS7EHidK5NOO2LzBJTubTduwnwIa90Z7nZF90qXtWXTkl89Auz4p2L35g/exec";
@@ -278,7 +278,7 @@
     });
   }
 
-  // Khởi tạo Sortable
+  // Khởi tạo SortableJS cho kho thẻ
   const poolSortable = new Sortable(pool, {
     group: 'shared-tree',
     animation: 150,
@@ -288,6 +288,7 @@
   });
   sortableInstances.push(poolSortable);
 
+  // Khởi tạo SortableJS cho các ô chứa
   slots.forEach(slot => {
     const s = new Sortable(slot, {
       group: {
@@ -304,7 +305,7 @@
     sortableInstances.push(s);
   });
 
-  // Hỗ trợ chạm/click chọn thẻ rồi đặt vào ô
+  // Hỗ trợ chạm/click chọn thẻ rồi chạm ô trên điện thoại
   let selectedItem = null;
   document.addEventListener('click', function(e) {
     if (isSubmitted) return;
@@ -349,7 +350,7 @@
     }
   });
 
-  // Xáo trộn ngẫu nhiên
+  // Xáo trộn vị trí thẻ ngẫu nhiên ban đầu
   for (let i = pool.children.length; i >= 0; i--) {
     pool.appendChild(pool.children[Math.random() * i | 0]);
   }
@@ -363,7 +364,7 @@
     t2_3banh: ["XEBABANH"],
     t3_3banh: ["XELAM", "XEXICHLO"],
     t2_4banh: ["XEBONBANH"],
-    t3_4banh: ["XEHOI", "XETAINHE"]
+    t3_4banh: ["XEHOI", "XETAINHO"]
   };
 
   async function submitExam() {
@@ -380,11 +381,9 @@
       }
     }
 
-    // Tính thời gian làm bài chính xác (Phút & Giây)
+    // Tính thời gian làm bài chính xác theo giây (ví dụ: 45 giây)
     const elapsedSeconds = Math.max(1, Math.round((Date.now() - START_TIME) / 1000));
-    const minutes = Math.floor(elapsedSeconds / 60);
-    const seconds = elapsedSeconds % 60;
-    const thoiGianLam = minutes > 0 ? `${minutes} phút ${seconds} giây` : `${seconds} giây`;
+    const thoiGianLam = `${elapsedSeconds} giây`;
 
     let correctCount = 0;
     const correctDetails = [];
@@ -424,7 +423,7 @@
       }
     });
 
-    // Khóa giao diện bài thi
+    // Khóa giao diện bài thi sau khi nộp
     isSubmitted = true;
     sortableInstances.forEach(inst => inst.option("disabled", true));
     document.getElementById('hoTen').disabled = true;
@@ -447,13 +446,13 @@
     btn.disabled = true;
     btn.innerText = "Đang lưu kết quả vào Google Sheet...";
 
-    // Gửi DUY NHẤT 1 YÊU CẦU qua fetch để tránh bị lặp 2 dòng
+    // Gửi DUY NHẤT 1 YÊU CẦU để chỉ thêm 1 dòng vào Google Sheet
     const targetUrl = `${SCRIPT_URL}?hoTen=${encodeURIComponent(hoTen)}&thoiGianLam=${encodeURIComponent(thoiGianLam)}&correctCount=${encodeURIComponent(correctCount)}&_t=${Date.now()}`;
 
     try {
       await fetch(targetUrl, { mode: 'no-cors' });
       btn.innerText = `ĐÃ NỘP THÀNH CÔNG - ĐIỂM: ${(correctCount / 10 * 10).toFixed(1)}/10`;
-      alert(`Nộp bài thành công!\nThời gian hoàn thành: ${thoiGianLam}\nĐiểm số: ${(correctCount / 10 * 10).toFixed(1)}/10.\nKết quả đã được ghi 1 dòng duy nhất vào Google Sheet.`);
+      alert(`Nộp bài thành công!\nThời gian hoàn thành: ${thoiGianLam}\nĐiểm số: ${(correctCount / 10 * 10).toFixed(1)}/10.\nKết quả đã được ghi 1 dòng vào Google Sheet.`);
     } catch (err) {
       btn.innerText = `ĐÃ NỘP - ĐIỂM: ${(correctCount / 10 * 10).toFixed(1)}/10`;
       alert("Đã ghi nhận bài nộp!");
